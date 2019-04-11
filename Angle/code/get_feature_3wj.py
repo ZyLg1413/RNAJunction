@@ -1,16 +1,21 @@
+#!/usr/bin/env python
 # _*_coding:utf-8_*_
+
 """
-该文件的功能主要是获得预测螺旋之间角度时候的一些可用的特征   (主要还是针对三分支环)
+Author: ZhangYi
+Purpose: get some features of 3WJ to predict the angle of adjacent helix
+
 """
+
+import math
 import sys
 
-sys.path.append("../../code/")
+sys.path.append("../../CommonTool/")
 import func_lib
-import math
 
 
 def dealFile(line):
-    tmp = line.strip("").split(" ")[0]
+    name = line.strip("").split(" ")[0]
     seq = line.strip("").split(" ")[3]
     ss = line.strip("").split(" ")[4]
     index1 = ss.index("()")
@@ -23,6 +28,7 @@ def dealFile(line):
             num2 += 1
         else:
             break
+
     # 首先获得第一个螺旋碱基配对的个数，用num1表示
     num1 = 0
     while True:
@@ -39,7 +45,7 @@ def dealFile(line):
         else:
             break
 
-    return tmp, seq, ss, index1, index2, num1, num2, num3
+    return name, seq, ss, index1, index2, num1, num2, num3
 
 
 def compare(x, y, z):
@@ -175,7 +181,7 @@ def get_wcpair(line, file, seq, num1, num2, num3, loop1, loop2, loop3):
         func_lib.writeToDisk(line, file)
 
 
-def get_term_pair(line, seq, num1, num2, num3, loop1, loop2, loop3):
+def get_index_pair(num1, num2, num3, loop1, loop2, loop3):
     index1l = num1 - 1
     index1r = num1 + 2 * num2 + 2 * num3 + loop1 + loop2 + loop3
     index2l = num1 + loop1
@@ -491,34 +497,30 @@ def get_energy(looplen, seq1, seq2, seq3, seq4):
 
 def main():
     cout = 0
-    for line in open("../../dataSet/3wj_wc_1.txt"):
-        tmp, seq, ss, index1, index2, num1, num2, num3 = dealFile(line)
+    for line in open("../data/3wj_wc_1.txt"):
+        name, seq, ss, index1, index2, num1, num2, num3 = dealFile(line)
         loop1, loop2, loop3, Aloop1, Aloop2, Aloop3, Uloop1, Uloop2, Uloop3, \
         Cloop1, Cloop2, Cloop3, Gloop1, Gloop2, Gloop3, \
         l1l2, l2l3, l1l3, sortlen \
             = loop_len(seq, ss, index1, index2, num1, num2, num3)
 
-        '''cout = cout + 1
-        if loop3==-1 or loop2==-1 or loop1 == -1:
-            print(cout)'''
-
         ### 获得helix末端只包含标准碱基配对的一些数据集
         # get_wcpair(line, "../../dataSet/3wj_wc_1.txt",seq,num1, num2, num3, loop1, loop2, loop3)
 
         ## 获得相邻螺旋之间的末端碱基配对之间的自由能
-        index1l, index1r, index2l, index2r, index3l, index3r = get_term_pair(seq, seq, num1, num2, num3, loop1, loop2,
-                                                                             loop3)
+        index1l, index1r, index2l, index2r, index3l, index3r = get_index_pair(num1, num2, num3, loop1, loop2,
+                                                                              loop3)
         energy1 = get_energy(loop1, seq[index1l], seq[index1r], seq[index1l + 1], seq[index1r - 1])
         energy2 = get_energy(loop2, seq[index2l], seq[index2r], seq[index2l + 1], seq[index2r - 1])
         energy3 = get_energy(loop3, seq[index3l], seq[index3r], seq[index3l + 1], seq[index3r - 1])
 
-        feature = tmp + " " + str(loop1) + " " + str(loop2) + " " + str(loop3) + " " + str(Aloop1) \
+        feature = name + " " + str(loop1) + " " + str(loop2) + " " + str(loop3) + " " + str(Aloop1) \
                   + " " + str(Aloop2) + " " + str(Aloop3) + " " + str(Uloop1) + " " + str(Uloop2) \
                   + " " + str(Uloop3) + " " + str(Cloop1) + " " + str(Cloop2) + " " + str(Cloop3) \
                   + " " + str(Gloop1) + " " + str(Gloop2) + " " + str(Gloop3) + " " + str(l1l2) \
                   + " " + str(l2l3) + " " + str(l1l3) + " " + str(sortlen).strip() + " " + str(energy1) \
                   + " " + str(energy2) + " " + str(energy3) + "\n"
-        func_lib.writeToDisk(feature, "feature_wc_1.txt")
+        func_lib.writeToDisk(feature, "../data/3wj_feature.txt")
 
 
 if __name__ == '__main__':

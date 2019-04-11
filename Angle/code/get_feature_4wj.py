@@ -1,14 +1,18 @@
+#!/usr/bin/env python
 # _*_coding:utf-8_*_
+
 """
-该文件的功能主要是获得预测螺旋之间角度时候的一些可用的特征   (主要还是针对四分支环)
+Author: ZhangYi
+Purpose: get some features of 4WJ to predict the angle of adjacent helix
+
 """
 import sys
 
-sys.path.append("../../code/")
+sys.path.append("../../CommonTool/")
 import func_lib
 
-sys.path.append("../3WJ/")
-import get_feature
+sys.path.append(".")
+import  get_feature_3wj
 
 
 def dealFile(line):
@@ -53,26 +57,6 @@ def dealFile(line):
             break
 
     return pdbName, seq, ss, index1, index2, index3, num1, num2, num3, num4
-
-
-def compare(x, y, z, p):
-    t = 0
-    if y < x:
-        t = x
-        x = y
-        y = t
-    if z < x:
-        t = x
-        x = z
-        z = t
-    if z < y:
-        t = y
-        y = z
-        z = t
-    sortlen = str(x) + ' ' \
-              + str(y) + ' ' \
-              + str(z) + ' \n'
-    return sortlen
 
 
 def loop_len(seq, ss, index1, index2, index3, num1, num2, num3, num4):
@@ -215,7 +199,7 @@ def get_wcpair(line, file, seq, num1, num2, num3, num4, loop1, loop2, loop3, loo
         func_lib.writeToDisk(line, file)
 
 
-def get_term_pair(line, seq, num1, num2, num3, num4, loop1, loop2, loop3, loop4):
+def get_index_pair(num1, num2, num3, num4, loop1, loop2, loop3, loop4):
     index1l = num1 - 1
     index2l = index1l + loop1 + 1
     index2r = index2l + 2 * num2 - 1
@@ -229,33 +213,31 @@ def get_term_pair(line, seq, num1, num2, num3, num4, loop1, loop2, loop3, loop4)
 
 def main():
     cout = 0
-    for line in open("../../dataSet/4wj_wc_1.txt"):
+
+    for line in open("../data/4wj_wc_1.txt"):
         pdbName, seq, ss, index1, index2, index3, num1, num2, num3, num4 = dealFile(line)
         loop1, loop2, loop3, loop4, Aloop1, Aloop2, Aloop3, Aloop4, Uloop1, Uloop2, Uloop3, Uloop4, \
         Cloop1, Cloop2, Cloop3, Cloop4, Gloop1, Gloop2, Gloop3, Gloop4 \
-        ,l1l3, l2l4, l1, l2, l3, l4\
+            , l1l3, l2l4, l1, l2, l3, l4 \
             = loop_len(seq, ss, index1, index2, index3, num1, num2, num3, num4)
-        '''cout = cout + 1
-        if loop1 < 0 or loop2 < 0 or loop3 < 0 or loop4 < 0:
-            print(cout)'''
 
         index1l, index1r, index2l, index2r, index3l, index3r, index4l, index4r = \
-            get_term_pair(line, seq, num1, num2, num3, num4, loop1, loop2, loop3, loop4)
-        energy1 = get_feature.get_energy(loop1, seq[index1l], seq[index1r], seq[index1l + 1], seq[index1r - 1])
-        energy2 = get_feature.get_energy(loop2, seq[index2l], seq[index2r], seq[index2l + 1], seq[index2r - 1])
-        energy3 = get_feature.get_energy(loop3, seq[index3l], seq[index3r], seq[index3l + 1], seq[index3r - 1])
-        energy4 = get_feature.get_energy(loop4, seq[index4l], seq[index4r], seq[index4l + 1], seq[index4r - 1])
+            get_index_pair(num1, num2, num3, num4, loop1, loop2, loop3, loop4)
+        energy1 = get_feature_3wj.get_energy(loop1, seq[index1l], seq[index1r], seq[index1l + 1], seq[index1r - 1])
+        energy2 = get_feature_3wj.get_energy(loop2, seq[index2l], seq[index2r], seq[index2l + 1], seq[index2r - 1])
+        energy3 = get_feature_3wj.get_energy(loop3, seq[index3l], seq[index3r], seq[index3l + 1], seq[index3r - 1])
+        energy4 = get_feature_3wj.get_energy(loop4, seq[index4l], seq[index4r], seq[index4l + 1], seq[index4r - 1])
 
         feature = pdbName + " " + str(loop1) + " " + str(loop2) + " " + str(loop3) + " " + str(loop4) \
                   + " " + str(Aloop1) + " " + str(Aloop2) + " " + str(Aloop3) + " " + str(Aloop4) \
                   + " " + str(Uloop1) + " " + str(Uloop2) + " " + str(Uloop3) + " " + str(Uloop4) \
                   + " " + str(Cloop1) + " " + str(Cloop2) + " " + str(Cloop3) + " " + str(Cloop4) \
                   + " " + str(Gloop1) + " " + str(Gloop2) + " " + str(Gloop3) + " " + str(Gloop4) \
-                  + " " + str(l1l3) + " " + str(l2l4) + " " + str(l1) + " " + str(l2) + " " +  str(l3)\
+                  + " " + str(l1l3) + " " + str(l2l4) + " " + str(l1) + " " + str(l2) + " " + str(l3) \
                   + " " + str(l4) \
                   + " " + str(energy1) + " " + str(energy2) + " " + str(energy3) + " " + str(energy4) \
                   + "\n"
-        func_lib.writeToDisk(feature, "feature_wc_1.txt")
+        func_lib.writeToDisk(feature, "../data/4wj_feature.txt")
 
         # get_wcpair(line, "../../dataSet/4wj_wc_1.txt", seq, num1, num2, num3,num4, loop1, loop2, loop3,loop4)
 
