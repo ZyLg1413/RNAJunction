@@ -11,7 +11,7 @@ from keras.utils import np_utils
 from sklearn.model_selection import train_test_split, KFold, cross_val_score
 from sklearn.preprocessing import LabelEncoder
 
-sys.path.append("../../../")
+sys.path.append("../../../CommonTool")
 import func_lib
 
 

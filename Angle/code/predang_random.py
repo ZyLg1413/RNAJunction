@@ -5,9 +5,13 @@
 import re
 import numpy as np
 from sklearn import ensemble
-from sklearn.cross_validation import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold, KFold
+# from sklearn.cross_validation import StratifiedKFold
 import matplotlib.pyplot as plt
 from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.preprocessing import LabelEncoder
+from keras.utils import np_utils
+from sklearn import preprocessing
 
 
 def read_data(datafile):
@@ -15,13 +19,13 @@ def read_data(datafile):
     with open(datafile, 'r') as f:
         for line in f:
             arr = re.split(r' +', line.strip('\n'))
-            loopl, loop, loopr, Anum, Unum, Cnum, Gnum, energy, angle = arr
+            loopl, loop, loopr, Anum, Unum, Cnum, Gnum, energy1, angle = arr
 
-            Angle = int(float(angle) // 20)  ### 十分类问题
-            #Angle = int(float(angle) // 36)  ### 五分类问题
+            # Angle = int(float(angle) // 20)  ### 十分类问题
+            Angle = int(float(angle) // 36)  ### 五分类问题
 
             data.append([Angle, float(loopl), float(loop), float(loopr), float(Anum), float(Unum), float(Cnum), \
-                         float(Gnum), float(energy)])
+                         float(Gnum), float(energy1)])
     return data
 
 
@@ -32,12 +36,21 @@ def S_KFold(data_x, data_y, repeat):
     while count < repeat:
         model = ensemble.RandomForestClassifier()
         scores = []
-        kfold = StratifiedKFold(y=data_y, n_folds=10, random_state=1)  # n_folds参数设置为10份
-        for train_index, test_index in kfold:
+
+        kfold = KFold(n_splits=10, shuffle=True)
+
+        for train_index, test_index in kfold.split(data_x, data_y):
             model.fit(data_x[train_index], data_y[train_index])
             score = model.score(data_x[test_index], data_y[test_index])
             scores.append(score)
-            # print('准确度: %.3f' % (score), count)
+            print('准确度: %.3f' % (score), count)
+        '''
+        kfold = StratifiedKFold(n_splits=10,random_state=0,shuffle=False)  # n_folds参数设置为10份
+        for train_index, test_index in kfold.split(data_x, data_y):
+            model.fit(data_x[train_index], data_y[train_index])
+            score = model.score(data_x[test_index], data_y[test_index])
+            scores.append(score)
+            # print('准确度: %.3f' % (score), count)'''
         avg = np.mean(scores)  ####   求出每次十倍交叉验证评估的平均值
         score_k.append(avg)  ####   保留每次交叉验证的精度
         score_avg.append(np.mean(score_k))  ####   保留n次交叉验证的平均值
@@ -102,7 +115,7 @@ def plot_import(X, y):
 def plot_K(repeat, score_avg1):
     x = [i for i in range(1, repeat + 1)]
     y1 = score_avg1
-    plt.plot(x, y1, "r-", linewidth=2, label="Angle1")
+    plt.plot(x, y1, "r-", linewidth=2, label="Angle")
     # plt.plot(x, y1, 'r*', markersize=15, alpha=0.75)
     # plt.plot(x, y2, "b-", linewidth=2, label="Angle2")
     # plt.plot(x, y3, "y-", linewidth=2, label="Angle3")
@@ -115,15 +128,25 @@ def plot_K(repeat, score_avg1):
 
 
 def main():
-    input_data = np.array(read_data("feature.txt"))
-    # np.random.shuffle(input_data)
-    repeat = 20
+    input_data = np.array(read_data("../data/feature.txt"))
+    np.random.shuffle(input_data)
+    repeat = 50
 
     data_x = np.array([i for i in input_data[:, 1:]], dtype=np.float32)
     # data_x2 = np.array([i for i in input_data[:, -1]], dtype=np.float32)
     # data_x = np.hstack((data_x1, data_x2))
     data_y = np.array([i for i in input_data[:, 0]], dtype=np.float32)
 
+    # 数据标准化
+    data_x = preprocessing.scale(data_x)
+
+    # encode class values as integers
+    '''
+    encoder = LabelEncoder()  # 字符串编码为整数
+    encoded_Y = encoder.fit_transform(data_y)
+    # convert integers to dummy variables (one hot encoding)
+    data_y = np_utils.to_categorical(encoded_Y)  # 整数转换成热编码
+    '''
     score = S_KFold(data_x, data_y, repeat)
     plot_K(repeat, score)
 
