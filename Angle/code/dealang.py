@@ -32,6 +32,7 @@ def findangle_4(name, file):
 
 
 def main():
+
     ### 提取三分支环的部分特征
     for line in open("../data/3wj_feature.txt"):
         line = line.strip("").split(" ")

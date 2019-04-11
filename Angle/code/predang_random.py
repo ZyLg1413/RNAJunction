@@ -141,12 +141,12 @@ def main():
     data_x = preprocessing.scale(data_x)
 
     # encode class values as integers
-    '''
+
     encoder = LabelEncoder()  # 字符串编码为整数
     encoded_Y = encoder.fit_transform(data_y)
     # convert integers to dummy variables (one hot encoding)
     data_y = np_utils.to_categorical(encoded_Y)  # 整数转换成热编码
-    '''
+
     score = S_KFold(data_x, data_y, repeat)
     plot_K(repeat, score)
 
